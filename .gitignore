@@ -8,7 +8,7 @@
 *.cert
 *.key
 
-nexum-worker-ecatch
+worker-validation-identity
 
 # Test binary, build with `go test-w -c`
 *.test

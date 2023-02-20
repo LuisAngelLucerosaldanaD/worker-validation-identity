@@ -13,10 +13,11 @@ var (
 )
 
 type configuration struct {
-	App   App   `json:"app"`
-	DB    DB    `json:"db"`
-	Files Files `json:"files"`
-	Aws   Aws   `json:"aws"`
+	App     App     `json:"app"`
+	DB      DB      `json:"db"`
+	Files   Files   `json:"files"`
+	Aws     Aws     `json:"aws"`
+	FaceApi FaceApi `json:"face_api"`
 }
 
 type App struct {
@@ -51,6 +52,10 @@ type Aws struct {
 	AWSACCESSKEYID     string `json:"AWS_ACCESS_KEY_ID"`
 	AWSSECRETACCESSKEY string `json:"AWS_SECRET_ACCESS_KEY"`
 	AWSDEFAULTREGION   string `json:"AWS_DEFAULT_REGION"`
+}
+
+type FaceApi struct {
+	CompareFace string `json:"compare_face"`
 }
 
 func NewConfiguration() *configuration {

@@ -43,82 +43,82 @@ func (w Worker) CompareFace() {
 		selfieImg, err := w.srv.SrvFiles.GetFilesByTypeAndUserID(1, work.UserId)
 		if err != nil {
 			logger.Error.Println("No se pudo obtener la selfie del usuario, error: %s", err.Error())
-			return
+			continue
 		}
 
 		fileSelfie, _, err := w.srv.SrvFilesS3.GetFileByPath(selfieImg.Path, selfieImg.Name)
 		if err != nil {
 			logger.Error.Printf("No se pudo descargar el archivo, error: %s", err.Error())
-			return
+			continue
 		}
 
 		frontDocumentImg, err := w.srv.SrvFiles.GetFilesByTypeAndUserID(2, work.UserId)
 		if err != nil {
 			logger.Error.Println("No se pudo obtener la imagen frontal del documento del usuario, error: %s", err.Error())
-			return
+			continue
 		}
 
 		fileDocument, _, err := w.srv.SrvFilesS3.GetFileByPath(frontDocumentImg.Path, frontDocumentImg.Name)
 		if err != nil {
 			logger.Error.Printf("No se pudo descargar el archivo, error: %s", err.Error())
-			return
+			continue
 		}
 
 		selfieBytes, err := base64.StdEncoding.DecodeString(fileSelfie.Encoding)
 		if err != nil {
 			logger.Error.Printf("couldn't decode selfie: %v", err)
-			return
+			continue
 		}
 
 		documentFrontBytes, err := base64.StdEncoding.DecodeString(fileDocument.Encoding)
 		if err != nil {
 			logger.Error.Printf("couldn't decode document front: %v", err)
-			return
+			continue
 		}
 
-		resp, err := aws_ia.CompareFaces(selfieBytes, documentFrontBytes)
+		resp, err := aws_ia.CompareFacesV2(selfieBytes, documentFrontBytes)
 		if err != nil {
 			logger.Error.Printf("couldn't decode identity: %v", err)
-			return
+			continue
 		}
 
 		if !resp {
 			_, err = w.srv.SrvWork.UpdateWorkValidationStatus("error", work.UserId)
 			if err != nil {
 				logger.Error.Printf("No se pudo actualizar el registro, error: %s", err.Error())
-				return
+				continue
 			}
 
 			_, err = w.srv.SrvStatusReq.UpdateStatusRequestByUserId("rechazado", "La selfie no coincide con la persona en el documento de identidad", work.UserId)
 			if err != nil {
 				logger.Error.Printf("No se pudo actualizar el registro, error: %s", err.Error())
-				return
+				continue
 			}
 
 			_, _, err = w.srv.SrvTraceability.CreateTraceability("Validación de datos", "error", "La selfie no coincide con la persona en el documento de identidad", work.UserId)
 			if err != nil {
 				logger.Error.Printf("couldn't create traceability, error: %v", err)
-				return
+				continue
 			}
-			return
+			continue
 		}
 
 		_, err = w.srv.SrvWork.UpdateWorkValidationStatus("ok", work.UserId)
 		if err != nil {
 			logger.Error.Printf("No se pudo actualizar el registro, error: %s", err.Error())
-			return
+			continue
 		}
 
 		_, err = w.srv.SrvStatusReq.UpdateStatusRequestByUserId("pendiente", "La selfie coincide con la persona en el documento de identidad", work.UserId)
 		if err != nil {
 			logger.Error.Printf("No se pudo actualizar el registro, error: %s", err.Error())
-			return
+			continue
 		}
 
 		_, _, err = w.srv.SrvTraceability.CreateTraceability("Validación de datos", "success", "La selfie coincide con la persona en el documento de identidad", work.UserId)
 		if err != nil {
 			logger.Error.Printf("couldn't create traceability, error: %v", err)
-			return
+			continue
 		}
 		return
 	}
