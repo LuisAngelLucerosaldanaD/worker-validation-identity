@@ -26,7 +26,7 @@ type CompareFace struct {
 	SimilarityMetric string  `json:"similarity_metric"`
 	Threshold        float64 `json:"threshold"`
 	Time             float64 `json:"time"`
-	Verified         bool    `json:"verified"`
+	Verified         string  `json:"verified"`
 }
 
 type FacialArea struct {

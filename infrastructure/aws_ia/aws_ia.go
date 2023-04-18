@@ -145,7 +145,11 @@ func CompareFacesV2(face1, face2 []byte) (bool, error) {
 		return false, fmt.Errorf(resFace.Msg)
 	}
 
-	return resFace.Data.Verified, nil
+	if resFace.Data.Verified == "true" {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func GetExtensionFromBytes(file []byte) string {
