@@ -2,10 +2,13 @@ package pkg
 
 import (
 	"github.com/jmoiron/sqlx"
+	"worker-validation-identity/pkg/clients"
 	"worker-validation-identity/pkg/files"
 	"worker-validation-identity/pkg/files_s3"
+	"worker-validation-identity/pkg/onboarding"
 	"worker-validation-identity/pkg/status_request"
 	"worker-validation-identity/pkg/traceability"
+	"worker-validation-identity/pkg/users"
 	"worker-validation-identity/pkg/work_validation"
 )
 
@@ -15,6 +18,9 @@ type Server struct {
 	SrvFilesS3      files_s3.PortsServerFile
 	SrvStatusReq    status_request.PortsServerStatusRequest
 	SrvTraceability traceability.PortsServerTraceability
+	SrvOnboarding   onboarding.PortsServerOnboarding
+	SrvClient       clients.PortsServerClients
+	SrvUsers        users.PortsServerUsers
 }
 
 func NewServerWorker(db *sqlx.DB, txID string) *Server {
@@ -33,11 +39,23 @@ func NewServerWorker(db *sqlx.DB, txID string) *Server {
 	repoTraceability := traceability.FactoryStorage(db, txID)
 	srvTraceability := traceability.NewTraceabilityService(repoTraceability, txID)
 
+	repoOnboarding := onboarding.FactoryStorage(db, txID)
+	srvOnboarding := onboarding.NewOnboardingService(repoOnboarding, txID)
+
+	repoClient := clients.FactoryStorage(db, txID)
+	srvClient := clients.NewClientsService(repoClient, txID)
+
+	repoUsers := users.FactoryStorage(db, txID)
+	srvUsers := users.NewUsersService(repoUsers, txID)
+
 	return &Server{
 		SrvWork:         srvWork,
 		SrvFiles:        srvFiles,
 		SrvFilesS3:      srvFilesS3,
 		SrvStatusReq:    srvStatusReq,
 		SrvTraceability: srvTraceability,
+		SrvOnboarding:   srvOnboarding,
+		SrvClient:       srvClient,
+		SrvUsers:        srvUsers,
 	}
 }
