@@ -19,7 +19,7 @@ type ServicesUsersRepository interface {
 	getLasted(email string, limit, offset int) ([]*Users, error)
 	getNotStarted() ([]*Users, error)
 	getNoUploadFile(fileType int) ([]*Users, error)
-	getByIdentityNumber(identityNumber int64) (*Users, error)
+	getByIdentityNumber(identityNumber string) (*Users, error)
 }
 
 func FactoryStorage(db *sqlx.DB, txID string) ServicesUsersRepository {

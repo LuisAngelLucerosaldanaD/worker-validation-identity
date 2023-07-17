@@ -18,7 +18,7 @@ type PortsServerUsers interface {
 	GetAllUsersLasted(email string, limit, offset int) ([]*Users, error)
 	GetAllNotStarted() ([]*Users, error)
 	GetAllNotUploadFile(fileType int) ([]*Users, error)
-	GetUsersByIdentityNumber(identityNumber int64) (*Users, int, error)
+	GetUsersByIdentityNumber(identityNumber string) (*Users, int, error)
 }
 
 type service struct {
@@ -118,7 +118,7 @@ func (s *service) GetAllNotUploadFile(fileType int) ([]*Users, error) {
 	return s.repository.getNoUploadFile(fileType)
 }
 
-func (s *service) GetUsersByIdentityNumber(identityNumber int64) (*Users, int, error) {
+func (s *service) GetUsersByIdentityNumber(identityNumber string) (*Users, int, error) {
 	m, err := s.repository.getByIdentityNumber(identityNumber)
 	if err != nil {
 		logger.Error.Println(s.txID, " - couldn`t getByIdentityNumber row:", err)

@@ -9,18 +9,20 @@ import (
 	"worker-validation-identity/pkg/status_request"
 	"worker-validation-identity/pkg/traceability"
 	"worker-validation-identity/pkg/users"
+	"worker-validation-identity/pkg/validation_request"
 	"worker-validation-identity/pkg/work_validation"
 )
 
 type Server struct {
-	SrvWork         work_validation.PortsServerWorkValidation
-	SrvFiles        files.PortsServerFiles
-	SrvFilesS3      files_s3.PortsServerFile
-	SrvStatusReq    status_request.PortsServerStatusRequest
-	SrvTraceability traceability.PortsServerTraceability
-	SrvOnboarding   onboarding.PortsServerOnboarding
-	SrvClient       clients.PortsServerClients
-	SrvUsers        users.PortsServerUsers
+	SrvWork              work_validation.PortsServerWorkValidation
+	SrvFiles             files.PortsServerFiles
+	SrvFilesS3           files_s3.PortsServerFile
+	SrvStatusReq         status_request.PortsServerStatusRequest
+	SrvTraceability      traceability.PortsServerTraceability
+	SrvOnboarding        onboarding.PortsServerOnboarding
+	SrvClient            clients.PortsServerClients
+	SrvUsers             users.PortsServerUsers
+	SrvValidationRequest validation_request.PortsServerValidationRequest
 }
 
 func NewServerWorker(db *sqlx.DB, txID string) *Server {
@@ -48,14 +50,18 @@ func NewServerWorker(db *sqlx.DB, txID string) *Server {
 	repoUsers := users.FactoryStorage(db, txID)
 	srvUsers := users.NewUsersService(repoUsers, txID)
 
+	repoValidationRequest := validation_request.FactoryStorage(db, txID)
+	srvValidationRequest := validation_request.NewValidationRequestService(repoValidationRequest, txID)
+
 	return &Server{
-		SrvWork:         srvWork,
-		SrvFiles:        srvFiles,
-		SrvFilesS3:      srvFilesS3,
-		SrvStatusReq:    srvStatusReq,
-		SrvTraceability: srvTraceability,
-		SrvOnboarding:   srvOnboarding,
-		SrvClient:       srvClient,
-		SrvUsers:        srvUsers,
+		SrvWork:              srvWork,
+		SrvFiles:             srvFiles,
+		SrvFilesS3:           srvFilesS3,
+		SrvStatusReq:         srvStatusReq,
+		SrvTraceability:      srvTraceability,
+		SrvOnboarding:        srvOnboarding,
+		SrvClient:            srvClient,
+		SrvUsers:             srvUsers,
+		SrvValidationRequest: srvValidationRequest,
 	}
 }

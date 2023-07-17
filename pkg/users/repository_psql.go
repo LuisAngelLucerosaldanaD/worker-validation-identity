@@ -153,7 +153,7 @@ func (s *psql) getNoUploadFile(fileType int) ([]*Users, error) {
 }
 
 // getByEmail consulta un registro por su ID
-func (s *psql) getByIdentityNumber(identityNumber int64) (*Users, error) {
+func (s *psql) getByIdentityNumber(identityNumber string) (*Users, error) {
 	const psqlGetByEmail = `SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE document_number = $1 `
 	mdl := Users{}
 	err := s.DB.Get(&mdl, psqlGetByEmail, identityNumber)
