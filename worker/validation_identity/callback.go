@@ -68,9 +68,14 @@ func (w *WorkerValidationIdentity) doWork(work *validation_request.ValidationReq
 		return
 	}
 
+	currentStatus := "Accepted"
+	if work.Status == "refused" {
+		currentStatus = "Rejected"
+	}
+
 	reqClient := RequestOnboarding{
 		DocumentNumber: user.DocumentNumber,
-		Status:         "Accepted",
+		Status:         currentStatus,
 		RequestID:      work.RequestId,
 		UserID:         user.ID,
 		VerifiedAt:     work.UpdatedAt,
@@ -87,6 +92,8 @@ func (w *WorkerValidationIdentity) doWork(work *validation_request.ValidationReq
 		logger.Error.Printf("El servicio del cliente %s, respondio con un codigo diferente a 200, código: %d", code)
 		return
 	}
+
+	// TODO pendiente guardar la respuesta del cliente en la base de datos
 
 	_, _, err = w.Srv.SrvValidationRequest.UpdateStatusValidationRequest(work.ID, "finished")
 	if err != nil {

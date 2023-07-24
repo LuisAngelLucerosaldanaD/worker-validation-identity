@@ -68,9 +68,19 @@ func (w *WorkerCallback) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
+	currentStatus := "Accepted"
+	if work.Status == "refused" {
+		_, err = w.Srv.SrvUsers.DeleteUsers(user.ID)
+		if err != nil {
+			logger.Error.Printf("No se pudo borrar el usuario rechazado, error: %v", err)
+			return
+		}
+		currentStatus = "Rejected"
+	}
+
 	reqClient := RequestOnboarding{
 		DocumentNumber: user.DocumentNumber,
-		Status:         "Accepted",
+		Status:         currentStatus,
 		RequestID:      work.RequestId,
 		UserID:         work.UserId,
 		VerifiedAt:     work.CreatedAt,

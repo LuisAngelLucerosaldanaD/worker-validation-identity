@@ -131,7 +131,7 @@ func (s *psql) updateStatus(m *ValidationRequest) error {
 
 func (s *psql) getPending() ([]*ValidationRequest, error) {
 	var ms []*ValidationRequest
-	const psqlGetAll = `SELECT id , client_id, max_num_validation, request_id, expired_at, user_identification, status, created_at, updated_at FROM cfg.validation_request where status = 'callback';`
+	const psqlGetAll = `SELECT id , client_id, max_num_validation, request_id, expired_at, user_identification, status, created_at, updated_at FROM cfg.validation_request where status = 'callback' or  status = 'refused';`
 
 	err := s.DB.Select(&ms, psqlGetAll)
 	if err != nil {
