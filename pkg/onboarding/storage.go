@@ -15,7 +15,7 @@ type ServicesOnboardingRepository interface {
 	delete(id string) error
 	getByID(id string) (*Onboarding, error)
 	getAll() ([]*Onboarding, error)
-	getPending() ([]*Onboarding, error)
+	getByStatus(status string) ([]*Onboarding, error)
 }
 
 func FactoryStorage(db *sqlx.DB, txID string) ServicesOnboardingRepository {

@@ -16,7 +16,7 @@ type WorkerCallback struct {
 }
 
 func (w *WorkerCallback) CallbackClient() {
-	works, err := w.Srv.SrvOnboarding.GetOnboardingPending()
+	works, err := w.Srv.SrvOnboarding.GetOnboardingPending("")
 	if err != nil {
 		logger.Error.Println("No se pudo obtener el listado de trabajo pendiente, error: %s", err.Error())
 		return

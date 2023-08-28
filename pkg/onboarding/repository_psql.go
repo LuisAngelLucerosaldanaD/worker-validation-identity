@@ -95,11 +95,11 @@ func (s *psql) getAll() ([]*Onboarding, error) {
 	return ms, nil
 }
 
-func (s *psql) getPending() ([]*Onboarding, error) {
+func (s *psql) getByStatus(status string) ([]*Onboarding, error) {
 	var ms []*Onboarding
-	const psqlGetAll = ` SELECT id , client_id, request_id, user_id, status, created_at, updated_at FROM auth.onboarding where status = 'pending';`
+	const psqlGetAll = ` SELECT id , client_id, request_id, user_id, status, created_at, updated_at FROM auth.onboarding where status = $1;`
 
-	err := s.DB.Select(&ms, psqlGetAll)
+	err := s.DB.Select(&ms, psqlGetAll, status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

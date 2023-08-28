@@ -13,7 +13,7 @@ type PortsServerOnboarding interface {
 	DeleteOnboarding(id string) (int, error)
 	GetOnboardingByID(id string) (*Onboarding, int, error)
 	GetAllOnboarding() ([]*Onboarding, error)
-	GetOnboardingPending() ([]*Onboarding, error)
+	GetOnboardingPending(status string) ([]*Onboarding, error)
 }
 
 type service struct {
@@ -88,6 +88,6 @@ func (s *service) GetAllOnboarding() ([]*Onboarding, error) {
 	return s.repository.getAll()
 }
 
-func (s *service) GetOnboardingPending() ([]*Onboarding, error) {
-	return s.repository.getPending()
+func (s *service) GetOnboardingPending(status string) ([]*Onboarding, error) {
+	return s.repository.getByStatus(status)
 }
