@@ -141,7 +141,7 @@ func CompareFacesV2(face1, face2 []byte) (bool, error) {
 	}
 
 	if resFace.Error {
-		logger.Error.Printf("error al consumir el servicio ocr: " + resFace.Msg)
+		logger.Error.Printf("error al consumir el servicio de comparacion de rostros: " + resFace.Msg)
 		return false, fmt.Errorf(resFace.Msg)
 	}
 

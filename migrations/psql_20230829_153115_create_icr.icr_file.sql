@@ -1,0 +1,16 @@
+
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS icr.icr_file(
+    id BIGSERIAL  NOT NULL PRIMARY KEY,
+    user_id VARCHAR (100) NOT NULL,
+    text VARCHAR (255) NOT NULL,
+    x CHANGE-THIS-TYPE  NOT NULL,
+    y CHANGE-THIS-TYPE  NOT NULL,
+    w CHANGE-THIS-TYPE  NOT NULL,
+    h CHANGE-THIS-TYPE  NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- +migrate Down
+DROP TABLE IF EXISTS icr.icr_file;

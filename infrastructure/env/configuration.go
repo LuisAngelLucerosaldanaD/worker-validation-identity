@@ -18,6 +18,7 @@ type configuration struct {
 	Files   Files   `json:"files"`
 	Aws     Aws     `json:"aws"`
 	FaceApi FaceApi `json:"face_api"`
+	RNecApi RNecApi `json:"rnec_api"`
 }
 
 type App struct {
@@ -56,6 +57,10 @@ type Aws struct {
 
 type FaceApi struct {
 	CompareFace string `json:"compare_face"`
+}
+
+type RNecApi struct {
+	Dni string `json:"dni"`
 }
 
 func NewConfiguration() *configuration {

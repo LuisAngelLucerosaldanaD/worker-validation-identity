@@ -5,6 +5,7 @@ import (
 	"worker-validation-identity/pkg/clients"
 	"worker-validation-identity/pkg/files"
 	"worker-validation-identity/pkg/files_s3"
+	"worker-validation-identity/pkg/icr_file"
 	"worker-validation-identity/pkg/onboarding"
 	"worker-validation-identity/pkg/status_request"
 	"worker-validation-identity/pkg/traceability"
@@ -23,6 +24,7 @@ type Server struct {
 	SrvClient            clients.PortsServerClients
 	SrvUsers             users.PortsServerUsers
 	SrvValidationRequest validation_request.PortsServerValidationRequest
+	SrvIcrFile           icr_file.PortsServerIcrFile
 }
 
 func NewServerWorker(db *sqlx.DB, txID string) *Server {
@@ -50,6 +52,9 @@ func NewServerWorker(db *sqlx.DB, txID string) *Server {
 	repoUsers := users.FactoryStorage(db, txID)
 	srvUsers := users.NewUsersService(repoUsers, txID)
 
+	repoIcrFile := icr_file.FactoryStorage(db, txID)
+	srvIcrFile := icr_file.NewIcrFileService(repoIcrFile, txID)
+
 	repoValidationRequest := validation_request.FactoryStorage(db, txID)
 	srvValidationRequest := validation_request.NewValidationRequestService(repoValidationRequest, txID)
 
@@ -63,5 +68,6 @@ func NewServerWorker(db *sqlx.DB, txID string) *Server {
 		SrvClient:            srvClient,
 		SrvUsers:             srvUsers,
 		SrvValidationRequest: srvValidationRequest,
+		SrvIcrFile:           srvIcrFile,
 	}
 }

@@ -18,7 +18,7 @@ type WorkerLifeTest struct {
 func (w *WorkerLifeTest) StartLifeTest() {
 	works, err := w.Srv.SrvOnboarding.GetOnboardingPending("life-test")
 	if err != nil {
-		logger.Error.Println("No se pudo obtener el listado de trabajo pendiente, error: %s", err.Error())
+		logger.Error.Println("No se pudo obtener el listado de trabajo pendiente de prueba de vida, error: %s", err.Error())
 		return
 	}
 
@@ -137,8 +137,8 @@ func (w *WorkerLifeTest) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	_, _, err = w.Srv.SrvTraceability.CreateTraceability("Prueba de vida", "error",
-		"La comparación entre la selfie y la foto del lado frontal del documento no coinciden o no son la misma persona", work.UserId)
+	_, _, err = w.Srv.SrvTraceability.CreateTraceability("Prueba de vida", "success",
+		"Prueba de vida superada correctamente", work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se pudo crear la trazabilidad, error: %v", err)
 		return

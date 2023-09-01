@@ -68,7 +68,7 @@ func (s *psql) delete(id string) error {
 
 // GetByID consulta un registro por su ID
 func (s *psql) getByID(id string) (*Users, error) {
-	const psqlGetByID = `SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE id = $1 `
+	const psqlGetByID = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE id = $1 `
 	mdl := Users{}
 	err := s.DB.Get(&mdl, psqlGetByID, id)
 	if err != nil {
@@ -83,7 +83,7 @@ func (s *psql) getByID(id string) (*Users, error) {
 // GetAll consulta todos los registros de la BD
 func (s *psql) getAll() ([]*Users, error) {
 	var ms []*Users
-	const psqlGetAll = ` SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users `
+	const psqlGetAll = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users `
 
 	err := s.DB.Select(&ms, psqlGetAll)
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *psql) getAll() ([]*Users, error) {
 
 // getByEmail consulta un registro por su ID
 func (s *psql) getByEmail(email string) (*Users, error) {
-	const psqlGetByEmail = `SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE email = $1 `
+	const psqlGetByEmail = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE email = $1 `
 	mdl := Users{}
 	err := s.DB.Get(&mdl, psqlGetByEmail, email)
 	if err != nil {
@@ -111,7 +111,7 @@ func (s *psql) getByEmail(email string) (*Users, error) {
 
 func (s *psql) getLasted(email string, limit, offset int) ([]*Users, error) {
 	var ms []*Users
-	const psqlGetAll = ` SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users where email <> $1 order by created_at desc limit $2 OFFSET $3`
+	const psqlGetAll = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users where email <> $1 order by created_at desc limit $2 OFFSET $3`
 
 	err := s.DB.Select(&ms, psqlGetAll, email, limit, offset)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *psql) getLasted(email string, limit, offset int) ([]*Users, error) {
 
 func (s *psql) getNotStarted() ([]*Users, error) {
 	var ms []*Users
-	const psqlGetAll = ` SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users where document_number = 0 or document_number is null`
+	const psqlGetAll = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users where document_number = 0 or document_number is null`
 
 	err := s.DB.Select(&ms, psqlGetAll)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *psql) getNotStarted() ([]*Users, error) {
 
 func (s *psql) getNoUploadFile(fileType int) ([]*Users, error) {
 	var ms []*Users
-	const psqlGetAll = `SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at 
+	const psqlGetAll = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at
  from auth.users u where (select f.id from cfg.files f where f.user_id = u.id and f."type" = $1) is null ;`
 
 	err := s.DB.Select(&ms, psqlGetAll, fileType)
@@ -154,7 +154,7 @@ func (s *psql) getNoUploadFile(fileType int) ([]*Users, error) {
 
 // getByEmail consulta un registro por su ID
 func (s *psql) getByIdentityNumber(identityNumber string) (*Users, error) {
-	const psqlGetByEmail = `SELECT id , type_document, document_number, expedition_date, email, first_name, second_name, second_surname, age, gender, nationality, civil_status, first_surname, birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE document_number = $1 `
+	const psqlGetByEmail = `SELECT id , coalesce(type_document, ''), document_number, expedition_date, email,  coalesce(first_name, ''),  coalesce(second_name, ''),  coalesce(second_surname, ''), age, gender, nationality, civil_status,  coalesce(first_surname, ''), birth_date, country, department, city, real_ip, cellphone, created_at, updated_at FROM auth.users WHERE document_number = $1 `
 	mdl := Users{}
 	err := s.DB.Get(&mdl, psqlGetByEmail, identityNumber)
 	if err != nil {
