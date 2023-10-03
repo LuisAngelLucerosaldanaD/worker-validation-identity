@@ -8,25 +8,27 @@ import (
 )
 
 type PortsServerOnboarding interface {
-	CreateOnboarding(id string, clientId int64, requestId string, userId string, status string) (*Onboarding, int, error)
-	UpdateOnboarding(id string, clientId int64, requestId string, userId string, status string) (*Onboarding, int, error)
+	CreateOnboarding(id string, clientId int64, requestId string, userId string, status string, transactionId string) (*Onboarding, int, error)
+	UpdateOnboarding(id string, clientId int64, requestId string, userId string, status string, transactionId string) (*Onboarding, int, error)
 	DeleteOnboarding(id string) (int, error)
 	GetOnboardingByID(id string) (*Onboarding, int, error)
 	GetAllOnboarding() ([]*Onboarding, error)
-	GetOnboardingPending(status string) ([]*Onboarding, error)
+	GetOnboardingByUserID(UserId string) (*Onboarding, int, error)
+	GetAllOnboardingByStatus(status string) ([]*Onboarding, error)
 }
 
 type service struct {
 	repository ServicesOnboardingRepository
-	txID       string
+
+	txID string
 }
 
 func NewOnboardingService(repository ServicesOnboardingRepository, TxID string) PortsServerOnboarding {
 	return &service{repository: repository, txID: TxID}
 }
 
-func (s *service) CreateOnboarding(id string, clientId int64, requestId string, userId string, status string) (*Onboarding, int, error) {
-	m := NewOnboarding(id, clientId, requestId, userId, status)
+func (s *service) CreateOnboarding(id string, clientId int64, requestId string, userId string, status string, transactionId string) (*Onboarding, int, error) {
+	m := NewOnboarding(id, clientId, requestId, userId, status, transactionId)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err
@@ -42,8 +44,8 @@ func (s *service) CreateOnboarding(id string, clientId int64, requestId string, 
 	return m, 29, nil
 }
 
-func (s *service) UpdateOnboarding(id string, clientId int64, requestId string, userId string, status string) (*Onboarding, int, error) {
-	m := NewOnboarding(id, clientId, requestId, userId, status)
+func (s *service) UpdateOnboarding(id string, clientId int64, requestId string, userId string, status string, transactionId string) (*Onboarding, int, error) {
+	m := NewOnboarding(id, clientId, requestId, userId, status, transactionId)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err
@@ -88,6 +90,19 @@ func (s *service) GetAllOnboarding() ([]*Onboarding, error) {
 	return s.repository.getAll()
 }
 
-func (s *service) GetOnboardingPending(status string) ([]*Onboarding, error) {
-	return s.repository.getByStatus(status)
+func (s *service) GetOnboardingByUserID(UserId string) (*Onboarding, int, error) {
+	if !govalidator.IsUUID(UserId) {
+		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("user_id isn't uuid"))
+		return nil, 15, fmt.Errorf("user_id isn't uuid")
+	}
+	m, err := s.repository.getByUserID(UserId)
+	if err != nil {
+		logger.Error.Println(s.txID, " - couldn`t getByID row:", err)
+		return nil, 22, err
+	}
+	return m, 29, nil
+}
+
+func (s *service) GetAllOnboardingByStatus(status string) ([]*Onboarding, error) {
+	return s.repository.getAllByStatus(status)
 }

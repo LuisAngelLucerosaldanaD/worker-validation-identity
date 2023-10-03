@@ -1,4 +1,4 @@
-package clients
+package client
 
 import (
 	"database/sql"
@@ -14,7 +14,7 @@ type psql struct {
 	TxID string
 }
 
-func newClientsPsqlRepository(db *sqlx.DB, txID string) *psql {
+func newClientPsqlRepository(db *sqlx.DB, txID string) *psql {
 	return &psql{
 		DB:   db,
 		TxID: txID,
@@ -22,8 +22,8 @@ func newClientsPsqlRepository(db *sqlx.DB, txID string) *psql {
 }
 
 // Create registra en la BD
-func (s *psql) create(m *Clients) error {
-	const psqlInsert = `INSERT INTO cfg.clients (full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at`
+func (s *psql) create(m *Client) error {
+	const psqlInsert = `INSERT INTO cfg.client (full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at`
 	stmt, err := s.DB.Prepare(psqlInsert)
 	if err != nil {
 		return err
@@ -46,10 +46,10 @@ func (s *psql) create(m *Clients) error {
 }
 
 // Update actualiza un registro en la BD
-func (s *psql) update(m *Clients) error {
+func (s *psql) update(m *Client) error {
 	date := time.Now()
 	m.UpdatedAt = date
-	const psqlUpdate = `UPDATE cfg.clients SET full_name = :full_name, nit = :nit, banner = :banner, logo_small = :logo_small, main_color = :main_color, second_color = :second_color, url_redirect = :url_redirect, url_api = :url_api, updated_at = :updated_at WHERE id = :id `
+	const psqlUpdate = `UPDATE cfg.client SET full_name = :full_name, nit = :nit, banner = :banner, logo_small = :logo_small, main_color = :main_color, second_color = :second_color, url_redirect = :url_redirect, url_api = :url_api, updated_at = :updated_at WHERE id = :id `
 	rs, err := s.DB.NamedExec(psqlUpdate, &m)
 	if err != nil {
 		return err
@@ -62,8 +62,8 @@ func (s *psql) update(m *Clients) error {
 
 // Delete elimina un registro de la BD
 func (s *psql) delete(id int64) error {
-	const psqlDelete = `DELETE FROM cfg.clients WHERE id = :id `
-	m := Clients{ID: id}
+	const psqlDelete = `DELETE FROM cfg.client WHERE id = :id `
+	m := Client{ID: id}
 	rs, err := s.DB.NamedExec(psqlDelete, &m)
 	if err != nil {
 		return err
@@ -75,9 +75,9 @@ func (s *psql) delete(id int64) error {
 }
 
 // GetByID consulta un registro por su ID
-func (s *psql) getByID(id int64) (*Clients, error) {
-	const psqlGetByID = `SELECT id , full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api, created_at, updated_at FROM cfg.clients WHERE id = $1 `
-	mdl := Clients{}
+func (s *psql) getByID(id int64) (*Client, error) {
+	const psqlGetByID = `SELECT id , full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api, created_at, updated_at FROM cfg.client WHERE id = $1 `
+	mdl := Client{}
 	err := s.DB.Get(&mdl, psqlGetByID, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -89,9 +89,9 @@ func (s *psql) getByID(id int64) (*Clients, error) {
 }
 
 // GetAll consulta todos los registros de la BD
-func (s *psql) getAll() ([]*Clients, error) {
-	var ms []*Clients
-	const psqlGetAll = ` SELECT id , full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api, created_at, updated_at FROM cfg.clients `
+func (s *psql) getAll() ([]*Client, error) {
+	var ms []*Client
+	const psqlGetAll = ` SELECT id , full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api, created_at, updated_at FROM cfg.client `
 
 	err := s.DB.Select(&ms, psqlGetAll)
 	if err != nil {
@@ -103,9 +103,9 @@ func (s *psql) getAll() ([]*Clients, error) {
 	return ms, nil
 }
 
-func (s *psql) getByNit(nit string) (*Clients, error) {
-	const psqlGetByNit = `SELECT id , full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api, created_at, updated_at FROM cfg.clients WHERE nit = $1 `
-	mdl := Clients{}
+func (s *psql) getByNit(nit string) (*Client, error) {
+	const psqlGetByNit = `SELECT id , full_name, nit, banner, logo_small, main_color, second_color, url_redirect, url_api, created_at, updated_at FROM cfg.client WHERE nit = $1 `
+	mdl := Client{}
 	err := s.DB.Get(&mdl, psqlGetByNit, nit)
 	if err != nil {
 		if err == sql.ErrNoRows {

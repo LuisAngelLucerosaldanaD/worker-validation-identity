@@ -1,4 +1,4 @@
-package clients
+package client
 
 import (
 	"time"
@@ -6,8 +6,8 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-// Clients  Model struct Clients
-type Clients struct {
+// Client  Model struct Client
+type Client struct {
 	ID          int64     `json:"id" db:"id" valid:"-"`
 	FullName    string    `json:"full_name" db:"full_name" valid:"required"`
 	Nit         string    `json:"nit" db:"nit" valid:"required"`
@@ -21,8 +21,8 @@ type Clients struct {
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
-func NewClients(id int64, fullName string, nit string, banner string, logoSmall string, mainColor string, secondColor string, urlRedirect string, urlApi string) *Clients {
-	return &Clients{
+func NewClient(id int64, fullName string, nit string, banner string, logoSmall string, mainColor string, secondColor string, urlRedirect string, urlApi string) *Client {
+	return &Client{
 		ID:          id,
 		FullName:    fullName,
 		Nit:         nit,
@@ -35,8 +35,8 @@ func NewClients(id int64, fullName string, nit string, banner string, logoSmall 
 	}
 }
 
-func NewCreateClients(fullName string, nit string, banner string, logoSmall string, mainColor string, secondColor string, urlRedirect string, urlApi string) *Clients {
-	return &Clients{
+func NewCreateClient(fullName string, nit string, banner string, logoSmall string, mainColor string, secondColor string, urlRedirect string, urlApi string) *Client {
+	return &Client{
 		FullName:    fullName,
 		Nit:         nit,
 		Banner:      banner,
@@ -48,7 +48,7 @@ func NewCreateClients(fullName string, nit string, banner string, logoSmall stri
 	}
 }
 
-func (m *Clients) valid() (bool, error) {
+func (m *Client) valid() (bool, error) {
 	result, err := govalidator.ValidateStruct(m)
 	if err != nil {
 		return result, err

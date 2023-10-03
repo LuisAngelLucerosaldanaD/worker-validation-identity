@@ -8,7 +8,7 @@ import (
 	"worker-validation-identity/infrastructure/logger"
 	"worker-validation-identity/infrastructure/ws"
 	"worker-validation-identity/pkg"
-	"worker-validation-identity/pkg/validation_request"
+	"worker-validation-identity/pkg/life_test"
 )
 
 type WorkerValidationIdentity struct {
@@ -16,7 +16,7 @@ type WorkerValidationIdentity struct {
 }
 
 func (w *WorkerValidationIdentity) SendValidationIdentity() {
-	works, err := w.Srv.SrvValidationRequest.GetPendingValidationRequest()
+	works, err := w.Srv.SrvLifeTest.GetAllLifeTestByStatus("pending")
 	if err != nil {
 		logger.Error.Println("No se pudo obtener el listado de trabajo de validacion de identidad, error: %s", err.Error())
 		return
@@ -27,7 +27,7 @@ func (w *WorkerValidationIdentity) SendValidationIdentity() {
 		return
 	}
 
-	workChan := make(chan *validation_request.ValidationRequest, len(works))
+	workChan := make(chan *life_test.LifeTest, len(works))
 	var wg sync.WaitGroup
 	for _, work := range works {
 		workChan <- work
@@ -45,9 +45,9 @@ func (w *WorkerValidationIdentity) SendValidationIdentity() {
 	wg.Wait()
 }
 
-func (w *WorkerValidationIdentity) doWork(work *validation_request.ValidationRequest) {
+func (w *WorkerValidationIdentity) doWork(work *life_test.LifeTest) {
 
-	client, _, err := w.Srv.SrvClient.GetClientsByID(work.ClientId)
+	client, _, err := w.Srv.SrvClient.GetClientByID(work.ClientId)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener los datos del cliente, error: %v", err)
 		return
@@ -57,7 +57,7 @@ func (w *WorkerValidationIdentity) doWork(work *validation_request.ValidationReq
 		return
 	}
 
-	user, _, err := w.Srv.SrvUsers.GetUsersByIdentityNumber(work.UserIdentification)
+	user, _, err := w.Srv.SrvUser.GetUserByID(work.UserID)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener los datos del usuario, error: %v", err)
 		return
@@ -95,7 +95,7 @@ func (w *WorkerValidationIdentity) doWork(work *validation_request.ValidationReq
 
 	// TODO pendiente guardar la respuesta del cliente en la base de datos
 
-	_, _, err = w.Srv.SrvValidationRequest.UpdateStatusValidationRequest(work.ID, "finished")
+	_, _, err = w.Srv.SrvLifeTest.UpdateLifeTest(work.ID, work.ClientId, work.MaxNumTest, work.RequestId, work.ExpiredAt, work.UserID, "finished")
 	if err != nil {
 		logger.Error.Printf("No se pudo actualizar el registro del onboarding, error: %v", err)
 		return

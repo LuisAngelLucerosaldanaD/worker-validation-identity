@@ -16,7 +16,7 @@ type WorkerCallback struct {
 }
 
 func (w *WorkerCallback) CallbackClient() {
-	works, err := w.Srv.SrvOnboarding.GetOnboardingPending("")
+	works, err := w.Srv.SrvOnboarding.GetAllOnboardingByStatus("pending")
 	if err != nil {
 		logger.Error.Println("No se pudo obtener el listado de trabajo pendiente, error: %s", err.Error())
 		return
@@ -47,7 +47,7 @@ func (w *WorkerCallback) CallbackClient() {
 
 func (w *WorkerCallback) doWork(work *onboarding.Onboarding) {
 
-	client, _, err := w.Srv.SrvClient.GetClientsByID(work.ClientId)
+	client, _, err := w.Srv.SrvClient.GetClientByID(work.ClientId)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener los datos del cliente, error: %v", err)
 		return
@@ -57,7 +57,7 @@ func (w *WorkerCallback) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	user, _, err := w.Srv.SrvUsers.GetUsersByID(work.UserId)
+	user, _, err := w.Srv.SrvUser.GetUserByID(work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener los datos del usuario, error: %v", err)
 		return
@@ -70,11 +70,6 @@ func (w *WorkerCallback) doWork(work *onboarding.Onboarding) {
 
 	currentStatus := "Accepted"
 	if work.Status == "refused" {
-		_, err = w.Srv.SrvUsers.DeleteUsers(user.ID)
-		if err != nil {
-			logger.Error.Printf("No se pudo borrar el usuario rechazado, error: %v", err)
-			return
-		}
 		currentStatus = "Rejected"
 	}
 
@@ -98,7 +93,7 @@ func (w *WorkerCallback) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "finished")
+	_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "finished", work.TransactionId)
 	if err != nil {
 		logger.Error.Printf("No se pudo actualizar el registro del onboarding, error: %v", err)
 		return

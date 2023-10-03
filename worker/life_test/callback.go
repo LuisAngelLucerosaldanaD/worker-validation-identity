@@ -16,7 +16,7 @@ type WorkerLifeTest struct {
 }
 
 func (w *WorkerLifeTest) StartLifeTest() {
-	works, err := w.Srv.SrvOnboarding.GetOnboardingPending("life-test")
+	works, err := w.Srv.SrvOnboarding.GetAllOnboardingByStatus("life-test")
 	if err != nil {
 		logger.Error.Println("No se pudo obtener el listado de trabajo pendiente de prueba de vida, error: %s", err.Error())
 		return
@@ -47,7 +47,7 @@ func (w *WorkerLifeTest) StartLifeTest() {
 
 func (w *WorkerLifeTest) doWork(work *onboarding.Onboarding) {
 
-	user, _, err := w.Srv.SrvUsers.GetUsersByID(work.UserId)
+	user, _, err := w.Srv.SrvUser.GetUserByID(work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener los datos del usuario, error: %v", err)
 		return
@@ -58,7 +58,7 @@ func (w *WorkerLifeTest) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	fileSelfie, err := w.Srv.SrvFiles.GetFilesByTypeAndUserID(1, work.UserId)
+	fileSelfie, _, err := w.Srv.SrvFile.GetFileByTypeAndUserID(1, work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener el registro de la selfie, error: %v", err)
 		return
@@ -81,7 +81,7 @@ func (w *WorkerLifeTest) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	fileDocument, err := w.Srv.SrvFiles.GetFilesByTypeAndUserID(2, work.UserId)
+	fileDocument, _, err := w.Srv.SrvFile.GetFileByTypeAndUserID(2, work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se obtener el registro del lado frontal del documento, error: %v", err)
 		return
@@ -116,7 +116,7 @@ func (w *WorkerLifeTest) doWork(work *onboarding.Onboarding) {
 	}
 
 	if !resp {
-		_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "life-test-refused")
+		_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "life-test-refused", work.TransactionId)
 		if err != nil {
 			logger.Error.Printf("No se pudo actualizar el estado de la solicitud, error: %v", err)
 			return
@@ -131,7 +131,7 @@ func (w *WorkerLifeTest) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "document-icr")
+	_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "document-icr", work.TransactionId)
 	if err != nil {
 		logger.Error.Printf("No se pudo actualizar el estado de la solicitud, error: %v", err)
 		return

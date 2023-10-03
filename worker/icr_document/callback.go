@@ -12,7 +12,7 @@ import (
 	"worker-validation-identity/infrastructure/persons"
 	"worker-validation-identity/pkg"
 	"worker-validation-identity/pkg/onboarding"
-	"worker-validation-identity/pkg/users"
+	"worker-validation-identity/pkg/user"
 )
 
 type WorkerIcrDocument struct {
@@ -20,7 +20,7 @@ type WorkerIcrDocument struct {
 }
 
 func (w *WorkerIcrDocument) StartIcrDocument() {
-	works, err := w.Srv.SrvOnboarding.GetOnboardingPending("document-icr")
+	works, err := w.Srv.SrvOnboarding.GetAllOnboardingByStatus("document-icr")
 	if err != nil {
 		logger.Error.Println("No se pudo obtener el listado de trabajo pendiente de icr, error: %s", err.Error())
 		return
@@ -51,18 +51,18 @@ func (w *WorkerIcrDocument) StartIcrDocument() {
 
 func (w *WorkerIcrDocument) doWork(work *onboarding.Onboarding) {
 
-	user, _, err := w.Srv.SrvUsers.GetUsersByID(work.UserId)
+	userFound, _, err := w.Srv.SrvUser.GetUserByID(work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener los datos del usuario, error: %v", err)
 		return
 	}
 
-	if user == nil {
+	if userFound == nil {
 		logger.Error.Printf("No se encontro un usuario con el id")
 		return
 	}
 
-	fileDocument, err := w.Srv.SrvFiles.GetFilesByTypeAndUserID(2, work.UserId)
+	fileDocument, _, err := w.Srv.SrvFile.GetFileByTypeAndUserID(2, work.UserId)
 	if err != nil {
 		logger.Error.Printf("No se obtener el registro del lado frontal del documento, error: %v", err)
 		return
@@ -98,17 +98,17 @@ func (w *WorkerIcrDocument) doWork(work *onboarding.Onboarding) {
 		return
 	}
 
-	personSrv := persons.Persons{IdentityNumber: user.DocumentNumber}
+	personSrv := persons.Persons{IdentityNumber: userFound.DocumentNumber}
 	userRnec, err := personSrv.GetPersonByIdentityNumber()
 	if err != nil {
 		logger.Error.Printf("No se pudo obtener el registro de la persona de RNec, error: %v", err)
 		return
 	}
 
-	personProcess := w.ProcessIcr(letters, userRnec, user)
+	personProcess := w.ProcessIcr(letters, userRnec, userFound)
 
 	if personProcess.Dni == "" || personProcess.SecondSurname == "" || personProcess.Name == "" || personProcess.Surname == "" {
-		_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "icr-document-refused")
+		_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "icr-document-refused", work.TransactionId)
 		if err != nil {
 			logger.Error.Printf("No se pudo actualizar el estado de la solicitud, error: %v", err)
 			return
@@ -130,7 +130,7 @@ func (w *WorkerIcrDocument) doWork(work *onboarding.Onboarding) {
 		}
 	}
 
-	_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "notify-client")
+	_, _, err = w.Srv.SrvOnboarding.UpdateOnboarding(work.ID, work.ClientId, work.RequestId, work.UserId, "notify-client", work.TransactionId)
 	if err != nil {
 		logger.Error.Printf("No se pudo actualizar el estado de la solicitud, error: %v", err)
 		return
@@ -144,13 +144,31 @@ func (w *WorkerIcrDocument) doWork(work *onboarding.Onboarding) {
 	}
 
 	birthDate, _ := time.Parse("02-01-2006", userRnec.BirthDate)
-	expeditionDate, _ := time.Parse("02-01-2006", userRnec.ExpeditionDate)
 	age := int32(time.Now().Year() - birthDate.Year())
 
 	nationality := "Colombia"
-	_, _, err = w.Srv.SrvUsers.UpdateUsers(user.ID, nil, user.DocumentNumber, &expeditionDate,
-		user.Email, &userRnec.FirstName, &userRnec.SecondName, &userRnec.SecondSurname, &age, &userRnec.Gender,
-		&nationality, nil, &userRnec.Surname, &birthDate, &nationality, nil, nil, user.RealIp, user.Cellphone)
+	_, _, err = w.Srv.SrvUser.UpdateUser(&user.User{
+		ID:                 userFound.ID,
+		Nickname:           userFound.Nickname,
+		Email:              userFound.Email,
+		Password:           userFound.Password,
+		FirstName:          &userRnec.FirstName,
+		SecondName:         &userRnec.SecondName,
+		FirstSurname:       &userRnec.Surname,
+		SecondSurname:      &userRnec.SecondSurname,
+		Age:                &age,
+		TypeDocument:       nil,
+		DocumentNumber:     userFound.DocumentNumber,
+		Cellphone:          userFound.Cellphone,
+		Gender:             &userRnec.Gender,
+		Nationality:        &nationality,
+		RealIp:             userFound.RealIp,
+		StatusId:           0,
+		FailedAttempts:     0,
+		LastChangePassword: userFound.LastChangePassword,
+		BirthDate:          &birthDate,
+		CreatedAt:          userFound.CreatedAt,
+	})
 	if err != nil {
 		logger.Error.Printf("No se pudo actualizar los datos del usuario, error: %v", err)
 		return
@@ -165,7 +183,7 @@ func (w *WorkerIcrDocument) doWork(work *onboarding.Onboarding) {
 	return
 }
 
-func (w *WorkerIcrDocument) ProcessIcr(letters []*icr.Letter, userRnec *persons.Person, user *users.Users) PersonICR {
+func (w *WorkerIcrDocument) ProcessIcr(letters []*icr.Letter, userRnec *persons.Person, user *user.User) PersonICR {
 	foundPerson := PersonICR{}
 	for _, letter := range letters {
 		if strings.ToUpper(letter.Text) == userRnec.IdentityNumber || strings.ToUpper(letter.Text) == strings.ToUpper(user.DocumentNumber) {

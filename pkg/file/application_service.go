@@ -1,4 +1,4 @@
-package traceability
+package file
 
 import (
 	"fmt"
@@ -6,27 +6,28 @@ import (
 	"worker-validation-identity/infrastructure/logger"
 )
 
-type PortsServerTraceability interface {
-	CreateTraceability(action string, typeTrx string, description string, userId string) (*Traceability, int, error)
-	UpdateTraceability(id int64, action string, typeTrx string, description string, userId string) (*Traceability, int, error)
-	DeleteTraceability(id int64) (int, error)
-	GetTraceabilityByID(id int64) (*Traceability, int, error)
-	GetAllTraceability() ([]*Traceability, error)
-	GetTraceabilityByUserID(userId string) ([]*Traceability, int, error)
-	DeleteTraceabilityByUserID(userId string) (int, error)
+type PortsServerFile interface {
+	CreateFile(path string, name string, typeFile int32, userId string) (*File, int, error)
+	UpdateFile(id int64, path string, name string, typeFile int32, userId string) (*File, int, error)
+	DeleteFile(id int64) (int, error)
+	GetFileByID(id int64) (*File, int, error)
+	GetAllFiles() ([]*File, error)
+	GetFilesByUserID(userId string) ([]*File, int, error)
+	DeleteFilesByUserID(userId string) (int, error)
+	GetFileByTypeAndUserID(typeFile int, userID string) (*File, int, error)
 }
 
 type service struct {
-	repository ServicesTraceabilityRepository
+	repository ServicesFileRepository
 	txID       string
 }
 
-func NewTraceabilityService(repository ServicesTraceabilityRepository, TxID string) PortsServerTraceability {
+func NewFileService(repository ServicesFileRepository, TxID string) PortsServerFile {
 	return &service{repository: repository, txID: TxID}
 }
 
-func (s *service) CreateTraceability(action string, typeTrx string, description string, userId string) (*Traceability, int, error) {
-	m := NewCreateTraceability(action, typeTrx, description, userId)
+func (s *service) CreateFile(path string, name string, typeFile int32, userId string) (*File, int, error) {
+	m := NewCreateFile(path, name, typeFile, userId)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err
@@ -36,14 +37,14 @@ func (s *service) CreateTraceability(action string, typeTrx string, description 
 		if err.Error() == "ecatch:108" {
 			return m, 108, nil
 		}
-		logger.Error.Println(s.txID, " - couldn't create Traceability :", err)
+		logger.Error.Println(s.txID, " - couldn't create File :", err)
 		return m, 3, err
 	}
 	return m, 29, nil
 }
 
-func (s *service) UpdateTraceability(id int64, action string, typeTrx string, description string, userId string) (*Traceability, int, error) {
-	m := NewTraceability(id, action, typeTrx, description, userId)
+func (s *service) UpdateFile(id int64, path string, name string, typeFile int32, userId string) (*File, int, error) {
+	m := NewFile(id, path, name, typeFile, userId)
 	if id == 0 {
 		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("id is required"))
 		return m, 15, fmt.Errorf("id is required")
@@ -53,13 +54,13 @@ func (s *service) UpdateTraceability(id int64, action string, typeTrx string, de
 		return m, 15, err
 	}
 	if err := s.repository.update(m); err != nil {
-		logger.Error.Println(s.txID, " - couldn't update Traceability :", err)
+		logger.Error.Println(s.txID, " - couldn't update File :", err)
 		return m, 18, err
 	}
 	return m, 29, nil
 }
 
-func (s *service) DeleteTraceability(id int64) (int, error) {
+func (s *service) DeleteFile(id int64) (int, error) {
 	if id == 0 {
 		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("id is required"))
 		return 15, fmt.Errorf("id is required")
@@ -75,7 +76,7 @@ func (s *service) DeleteTraceability(id int64) (int, error) {
 	return 28, nil
 }
 
-func (s *service) GetTraceabilityByID(id int64) (*Traceability, int, error) {
+func (s *service) GetFileByID(id int64) (*File, int, error) {
 	if id == 0 {
 		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("id is required"))
 		return nil, 15, fmt.Errorf("id is required")
@@ -88,29 +89,29 @@ func (s *service) GetTraceabilityByID(id int64) (*Traceability, int, error) {
 	return m, 29, nil
 }
 
-func (s *service) GetAllTraceability() ([]*Traceability, error) {
+func (s *service) GetAllFiles() ([]*File, error) {
 	return s.repository.getAll()
 }
 
-func (s *service) GetTraceabilityByUserID(userId string) ([]*Traceability, int, error) {
+func (s *service) GetFilesByUserID(userId string) ([]*File, int, error) {
 	if !govalidator.IsUUID(userId) {
 		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("userId isn't uuid"))
 		return nil, 15, fmt.Errorf("userId isn't uuid")
 	}
 	m, err := s.repository.getByUserID(userId)
 	if err != nil {
-		logger.Error.Println(s.txID, " - couldn`t getByUserID row:", err)
+		logger.Error.Println(s.txID, " - couldn`t getByID row:", err)
 		return nil, 22, err
 	}
 	return m, 29, nil
 }
 
-func (s *service) DeleteTraceabilityByUserID(userId string) (int, error) {
+func (s *service) DeleteFilesByUserID(userId string) (int, error) {
 	if !govalidator.IsUUID(userId) {
 		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("userId isn't uuid"))
 		return 15, fmt.Errorf("userId isn't uuid")
 	}
-	if err := s.repository.deleteByUserID(userId); err != nil {
+	if err := s.repository.deleteByUserId(userId); err != nil {
 		if err.Error() == "ecatch:108" {
 			return 108, nil
 		}
@@ -118,4 +119,13 @@ func (s *service) DeleteTraceabilityByUserID(userId string) (int, error) {
 		return 20, err
 	}
 	return 28, nil
+}
+
+func (s *service) GetFileByTypeAndUserID(typeFile int, userID string) (*File, int, error) {
+	m, err := s.repository.getByTypeAndUserID(typeFile, userID)
+	if err != nil {
+		logger.Error.Println(s.txID, " - couldn`t getByID row:", err)
+		return nil, 22, err
+	}
+	return m, 29, nil
 }

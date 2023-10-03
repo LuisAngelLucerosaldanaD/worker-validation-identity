@@ -2,6 +2,8 @@ package traceability
 
 import (
 	"time"
+
+	"github.com/asaskevich/govalidator"
 )
 
 // Traceability  Model struct Traceability
@@ -32,4 +34,12 @@ func NewCreateTraceability(action string, typeTrx string, description string, us
 		Description: description,
 		UserId:      userId,
 	}
+}
+
+func (m *Traceability) valid() (bool, error) {
+	result, err := govalidator.ValidateStruct(m)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
 }

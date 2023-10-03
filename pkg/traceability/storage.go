@@ -11,6 +11,12 @@ const (
 
 type ServicesTraceabilityRepository interface {
 	create(m *Traceability) error
+	update(m *Traceability) error
+	delete(id int64) error
+	getByID(id int64) (*Traceability, error)
+	getAll() ([]*Traceability, error)
+	getByUserID(userId string) ([]*Traceability, error)
+	deleteByUserID(userId string) error
 }
 
 func FactoryStorage(db *sqlx.DB, txID string) ServicesTraceabilityRepository {
